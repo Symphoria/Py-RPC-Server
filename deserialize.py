@@ -12,10 +12,17 @@ def unmarshal_int(arg):
     return int(arg)
 
 
+def unmarshal_float(arg):
+    return float(arg)
+
+
 def unmarshal(arg, arg_type):
     if arg_type == 'int':
         return unmarshal_int(arg)
     elif arg_type == 'boolean':
         return unmarshal_boolean(arg)
+    elif arg_type == 'float':
+        return unmarshal_float(arg)
 
     return json.loads(arg)
+
