@@ -1,8 +1,8 @@
 import json
 import requests
-import sys
 from flask import Flask, request, make_response
 from flask_cors import CORS
+from flask_pymongo import PyMongo
 
 import procedures
 from serialize import marshal
@@ -10,7 +10,9 @@ from deserialize import unmarshal
 
 
 app = Flask(__name__)
+app.config["MONGO_URI"] = "mongodb://localhost:27017/test"
 CORS(app)
+mongo = PyMongo(app)
 
 with open("services.json") as data_file:
     signature = json.load(data_file)
@@ -37,6 +39,29 @@ def call_proc(proc_name, args):
         return procedures.find_count(*args)
 
 
+def check_duplicate(client_id, request_no):
+    stored_result = mongo.db.history.find_one({"clientId": client_id, "requestNo": request_no})
+
+    if stored_result:
+        return True, stored_result['result']
+    else:
+        return False, 'No stored result'
+
+
+def update_stored_result(client_id, request_no, result):
+    stored_result = mongo.db.history.find_one({'clientId': client_id})
+
+    if stored_result:
+        mongo.db.history.update_one({'clientId': request.remote_addr}, {
+            '$set': {
+                'requestNo': request_no,
+                'result': result
+            }
+        })
+    else:
+        mongo.db.history.insert_one({'clientId': client_id, 'requestNo': request_no, 'result': result})
+
+
 @app.route('/', methods=['GET'])
 def hello():
     return 'Hello World'
@@ -45,6 +70,11 @@ def hello():
 @app.route('/remote-call', methods=['POST'])
 def remote_call():
     data = request.get_json()
+    is_duplicate, stored_result = check_duplicate(request.remote_addr, data['request_no'])
+
+    if is_duplicate:
+        return make_response(stored_result), 200
+
     proc_name = data["serviceName"]
     marshalled_args = sorted(data['parameters'], key=lambda x: x['parameterPosition'])
     proc_signature = signature[proc_name]
@@ -57,10 +87,13 @@ def remote_call():
     result = call_proc(proc_name, args)
     print(result)
     marshalled_result = marshal(result, proc_signature['returnType'])
+    json_response = json.dumps(marshalled_result)
 
-    return make_response(json.dumps(marshalled_result)), 200
+    update_stored_result(request.remote_addr, data['request_no'], json_response)
+
+    return make_response(json_response), 200
 
 
 if __name__ == '__main__':
-    register_rpc(signature['is_even'])
+    # register_rpc(signature['find_count'])
     app.run(debug=True)

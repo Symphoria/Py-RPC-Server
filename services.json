@@ -2,13 +2,13 @@
     "is_even": {
         "serviceName": "is_even",
         "parameters": [{"position": 1, "type": "int"}],
-        "server": "http://73e27990.ngrok.io/remote-call",
+        "server": "http://b6e5ba61.ngrok.io/remote-call",
         "returnType": "boolean"
     },
     "find_count": {
         "serviceName": "find_count",
         "parameters": [{"position": 1, "type": "string"}, {"position": 2, "type": "char"}],
-        "server": "http://73e27990.ngrok.io/remote-call",
+        "server": "http://b6e5ba61.ngrok.io/remote-call",
         "returnType": "int"
     }
 }

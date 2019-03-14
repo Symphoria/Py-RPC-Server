@@ -1,6 +1,3 @@
-import json
-
-
 def unmarshal_boolean(arg):
     if int(arg) == 1:
         return True
@@ -24,5 +21,5 @@ def unmarshal(arg, arg_type):
     elif arg_type == 'float':
         return unmarshal_float(arg)
 
-    return json.loads(arg)
+    return arg
 
