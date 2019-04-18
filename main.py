@@ -37,6 +37,8 @@ def call_proc(proc_name, args):
         return procedures.is_even(*args)
     elif proc_name == 'find_count':
         return procedures.find_count(*args)
+    elif proc_name == 'find_sum':
+        return procedures.find_sum(*args)
 
 
 def check_duplicate(client_id, request_no):
